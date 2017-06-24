@@ -10,8 +10,6 @@ my @a;
 @a[3] = @a[1];
 
 say @a; # [200 300 100 300]
-say @a.elems;
-say @a.reverse; # (300 100 300 200)
 
 my $s = 10 + 20;
 say $s;

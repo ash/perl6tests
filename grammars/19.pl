@@ -89,25 +89,24 @@ class A {
         say %var{$<variable><sigil>}{$<variable><identifier>};
     }
 
-    method term($/) {
-        if $<value> {
-            $/.make($<value>.ast)
-        }
-        elsif $<variable> {
-            $/.make($<variable>.ast)
-        }
+    multi method term($/ where $/<value>) {
+        $/.make($<value>.ast)
     }
 
-    method expression($/) {
-        if $<term> {
-            $/.make($<term>.ast + $<expression>.ast)
-        }
-        elsif $<value> {
-            $/.make(~$<value>)
-        }
-        elsif $<variable> {
-            $/.make(%var{$<variable><sigil>}{$<variable><identifier>})
-        }
+    multi method term($/ where $/<variable>) {
+        $/.make($<variable>.ast)
+    }
+
+    multi method expression($/ where $/<term>) {
+        $/.make($<term>.ast + $<expression>.ast)
+    }
+
+    multi method expression($/ where $/<value>) {
+        $/.make(~$<value>)
+    }
+
+    multi method expression($/ where $/<variable>) {
+        $/.make(%var{$<variable><sigil>}{$<variable><identifier>})
     }
 }
 
