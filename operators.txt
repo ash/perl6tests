@@ -1,0 +1,152 @@
+postcircumfix [ ]
+postcircumfix { }
+postcircumfix < >
+postcircumfix « »
+postcircumfix ( )
+postfix .
+postfix .&
+postfix .=
+postfix .^
+postfix .?
+postfix .+
+postfix .*
+postfix ». / postfix >>.
+postfix .postfix / .postcircumfix
+postfix .:
+postfix .::
+Autoincrement Precedence
+prefix ++
+prefix --
+postfix ++
+postfix --
+Exponentiation Precedence
+infix **
+Symbolic Unary Precedence
+prefix ?
+prefix !
+prefix +
+prefix -
+prefix ~
+prefix |
+prefix ||
+prefix +^
+prefix ~^
+prefix ?^
+prefix ^
+Multiplicative Precedence
+infix *
+infix /
+infix div
+infix %
+infix %%
+infix mod
+infix +&
+infix +<
+infix +>
+infix ~&
+infix ~<
+infix ~>
+infix gcd
+infix lcm
+Additive Precedence
+infix +
+infix -
+infix +|
+infix +^
+infix ~|
+infix ~^
+infix ?|
+Replication Precedence
+infix x
+infix xx
+Concatenation
+infix ~
+Junctive AND (all) Precedence
+infix &
+Junctive OR (any) Precedence
+infix |
+infix ^
+Named Unary Precedence
+prefix temp
+prefix let
+Nonchaining Binary Precedence
+infix does
+infix but
+infix cmp
+infix leg
+infix <=>
+infix ..
+infix ..^
+infix ^..
+infix ^..^
+Chaining Binary Precedence
+infix ==
+infix !=
+infix ≠
+infix <
+infix <=
+infix ≤
+infix >
+infix >=
+infix ≥
+infix eq
+infix ne
+infix gt
+infix ge
+infix lt
+infix le
+infix before
+infix after
+infix eqv
+infix ===
+infix =:=
+infix ~~
+infix =~=
+Tight AND Precedence
+infix &&
+Tight OR Precedence
+infix ||
+infix ^^
+infix // 
+infix min
+infix max
+Conditional Operator Precedence
+infix ?? !!
+infix ff
+infix ^ff
+infix ff^
+infix ^ff^
+infix fff
+infix ^fff
+infix fff^
+infix ^fff^
+Item Assignment Precedence
+infix =
+infix =>
+Loose Unary Precedence
+prefix not
+prefix so
+Comma Operator Precedence
+infix ,
+infix :
+List Infix Precedence
+infix Z
+infix X
+infix ...
+List Prefix Precedence
+infix =
+infix :=
+infix ::=
+listop ...
+listop !!!
+listop ???
+Reduction operators
+Loose AND precedence
+infix and
+infix andthen
+Loose OR Precedence
+infix or
+infix orelse
+Sequencer Precedence
+infix ==>
+infix <==

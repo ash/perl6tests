@@ -1,0 +1,940 @@
+Operators are the elements of the syntax of the language, which perform some actions over their operands and return some result. Perl 6 is a language with dozens of operators. Some of them are inherited from Perl 5 (directly or with modifications), some are invented especially for Perl 6. On top of the set of regular operators, Perl 6 defines the so-called meta-operators and hyper-operators, which extend the meaning of regular operators for working on group of values.
+
+In this chapter, we will cover the following topics:
+
+Operator classification
+Unary operators
+Binary operators
+Ternary operator
+Bitwise operators
+Miscellaneous operators
+Operator precedence
+Substitution meta-operators
+Assignment meta-operators
+Negation meta-operators
+Reversed meta-operators
+Creating hyper-operators
+Types of hyper-operations
+Reduction hyper-operators
+Cross hyper-operators
+Zip hyper-operator
+Sequential hyper-operators
+Operator classification
+
+First, let’s remind some basic terminology, which we need when talking about operators. Consider a simple example:
+
+my $a = 10;
+my $b = 20;
+my $c = 0;
+$c = $a + $b;
+say $c; # 30
+Let us concentrate on the following line of code:
+
+$c = $a + $b;
+Here, we tell the compiler to do two actions: first, calculate the sum of the variables $a and $b, and second, assign the result to the third variable $c. There are two operators in this example: + and =. Operators are presented by their one-character names. In this case the names are chosen to copy the corresponding operators in mathematics. Later we will see examples of other operators, which are not just a character. It can be, for example, a sequence of two or three non-alphabetical symbols, such as operators >= or <=. Or, it can be a string identifier, for example: cmp or eq.
+
+Categories of operators
+
+In the previous section, we have seen an example of the + operator, which takes two arguments. There are many other operators that are similar to +. For example, * is the operator for multiplication. Like the + operator, the * operator takes two arguments and returns a value.
+
+my $c = $a * $b;
+This kind of operator is called an infix operator, or simply infix. The operands of such operator are often called the left-hand side and right-hand side operands. As the operators take two arguments, they are also often called binary operators.
+
+Another kind of operators needs only one argument. These operators are called unary operators. A typical example of a unary operator is an unary minus. In the following example this operator negates the value of its argument:
+
+my $a = 10;
+my $b = -$a;
+say $b; # prints -10
+Notice that this operator uses the same character as the binary minus operator but both the programmer and the compiler can distinguish between the two:
+
+my $a = 10;
+my $b = -$a;     # unary minus, $b becomes -10
+my $c = $a - $b; # binary subtraction, $c is 20
+Different unary operators can be placed either before the argument or after it. For example, the ++ operator has two forms: prefix and postfix. The following example demonstrates the two alternatives:
+
+my $a = 10;
+++$a; # prefix operator ++
+$a++; # postfix operator ++
+The position of an operator (either it is placed before or after an argument) changes its meaning. 
+
+So far, we’ve met infix, prefix and postfix operators. There are two more categories of operators in Perl 6.
+
+Circumfix operators are another kind of unary operators. Unlike the operators like unary -, circumfix operators consists of two complementary parts, such as parentheses. The only operand of a circumfix operator is placed between them, for example: the construction [$a] uses the [] circumfix operator, that takes $a as an argument.
+
+Finally, there are postcircumfix operators. They need two operands, and the syntax is the following: operand1[operand2]. One of the most practical examples of the postcircumfix operator is the function call. We’ve seen it a few times already: add($a, $b).
+
+Let us summarise the operator categories in the table, using the + operator symbol as an example.
+
+Category	Syntax
+infix	operand1 + operand2
+prefix	+operand
+postfix	operand+
+circumfix	(operand)
+postcircumfix	operand1[operand2]
+Operators as functions
+
+Operators do some actions over their arguments. Operator’s arguments are called operands. In the example above, the + operator takes two operands, $a and $b. The = operator also takes two operands: on the left side of it it expects the variable, to which it will assign the value of the operand on the right side.
+
+In any programming language, operators are simply a handy syntactical solution to have more expressive programs and can be replaced with calling a functions. For example, in the above example, you write $c = $a + $b but you also can do the same by calling the add function that we have seen in Chapter 1, What is Perl 6. Let us rewrite the previous example:
+
+my $a = 10;
+my $b = 20;
+my $c = 0;
+$c = add($a, $b);
+say $c; # 30
+
+sub add($a, $b) {
+    return $a + $b;
+}
+Of course, the function add uses the + operator itself but we cannot avoid it here, because there are no more low level functions for addition in Perl 6. The purpose of the example was to demonstrate that operators can be always treated as functions, which accept a few argument and return a value but you do not call it directly but rather via a good-looking operator.
+
+In Perl 6, you may use the functional style when working with operators. For that, use the keyword with the name of the category of the operator followed by the colon and the operator itself in the angle brackets. Then pass the arguments as you do it with functions. The following example demonstrate it on the example of the + infix operator.
+
+my $a = 10;
+my $b = 20;
+my $c = infix:<+>($a, $b); # same as $c = $a + $b
+say $c; # 40
+Now, let us discuss the categories of the operators that Perl 6 offers.
+
+And now it’s time to examine the operators one by one.
+
+Operators in Perl 6
+
+There are a few dozens of operators in Perl 6. To make the overview more structures, we will group them in the groups corresponding to the categories that we described in the previous sections:
+
+infix operators,
+postfix operators,
+circumfix operators,
+postcircumfix operators.
+Infix operators
+
+Infix operators are, probably, the most commonly used operators in the language. They also the most intuitive ones.
+
+=
+
+= is an assignment operator. It is used to assign the value of its right-hand side operator to the variable on the left. In the simplest case, the operator used like this:
+
+my $a;
+$a = 42;
+The action is not limited to scalars only. Arrays, hashes or instances of classes (we talk about classes in Chapter 9, Object-Oriented Programming) work are also processed as expected.
+
+my @a = <10 20 30>;
+my @b = @a;
+Here, the assignment operator is used twice, first to initialise the array @a, and then to assign its values to the second array, @b.
+
+* and /
+
+The * and / operators are the operators for multiplication and division. Their operands are converted to the numeric type if necessary. Consider the following examples:
+
+say 10 * 20;
+say "10" * "20";
+Both lines of code print 200. Although, in the fist line, the operands of the multiplication operator were both numeric (more precisely, Int). In the second line, we are trying to multiply strings containing number. Perl 6 converts the strings for us to make them numbers, and then the * operator does its work.
+
+The * and / operators work well with the floating-point and with complex numbers (because both the Num and Complex types implement the Numeric role):
+
+say pi * e;             # 8.53973422267357
+say (10+3i) * (2-3.3i); # 29.9-27i
+Be careful with multiplying complex numbers as in the example above. To get the correct result, you should group the parts of the complex number in parentheses. If you omit them, the compiler will interpret the expression
+
+say 10 + 3i * 2 - 3.3i; # 10+2.7i
+as the following:
+
+say 10 + (3i * 2) - 3.3i;
+In arithmetical expressions, * and / have higher precedence than + and -, thus all the calculations are done in the order according to the arithmetic rules.
+
+say 10 + 3 * 6.3 - 3; # 25.9
+If you divide two integer values, then the result will be of the Rat type, not the Num type. To get the Num value, at least one of the operands must be Num:
+
+say (1 / 2).WHAT;        # Rat
+say (1 / 2.3).WHAT;      # Rat
+
+say (1e1 / 2.3).WHAT;    # Num
+say (1e1 / 2.3e-2).WHAT; # Num
+say (1 / 2.3e-2).WHAT;   # Num
+The * and / operators have equivalent notations in the non-ASCII space, you may use the × and ÷ symbols instead:
+
+my $a = 100;
+my $b = 25;
+
+say $a × $b; # 2500
+say $a ÷ $b; # 4
++ and -
+
+The + and - operators are operators for addition and subtraction. The operands must be of the numeric types.
+
+There is not much to say about the operators, their behaviour is self-explanatory:
+
+my $a = 10;
+say $a + 3;  # 13
+
+my $b = 20;
+say $b - $a; # 10;
+In combination with, for example, * and /, the + and - operators have lower precedence, thus the standard arithmetical rules apply.
+
+When it is possible to cast the string to a number (either integer or floating-point), that conversion will be performed by the compiler, and the + and - operators will work with two numeric operands. For example:
+
+my $str = "42";
+say $str - 2; # 40
+As the operators expect their arguments to be numeric, you cannot use the + operator for concatenating strings. The naïve attempt to ‘add’ two strings will be caught by the compiler. Take the following code, for example:
+
+my $str1 = "Hello";
+my $str2 = "World";
+say $str1 + $str2; # Error
+If you compile that, you get a compile-time error:
+
+Cannot convert string to number: base-10 number must begin with valid digits or '.' in 'Hello' (indicated by )
+  in block <unit> at add-str.pl line 3
+Notice that the string conversion will not happen even if the string starts with a number, for example, the string "10 Hello" leads to another error message:
+
+Cannot convert string to number: trailing characters after number in '10 Hello' (indicated by )
+To be correctly converted to a numeric type, the string must contain a number and nothing else. Although, whitespaces are allowed, as shown in the following example:
+
+my $str1 = " 10 ";
+my $str2 = " 20 ";
+say $str1 + $str2; # 30
+To concatenate strings, use the ~ operator.
+
+It is possible to use the Unicode minus character in place of the - operator. There may be not much visual difference in the terminal but the codepoints of the characters are different: 0x2D for the bare - that you can type from the keyboard and 0x2212 for the Unicode MINUS SIGN:
+
+my $a = 20;
+my $b = 30;
+
+say $a - $b; # ASCII
+say $a − $b; # Unicode
+%
+
+% is the modulo operator. It returns the reminder of the division of its operands.
+
+say 100 % 3; # 1
+say 10 % 3;  # 1
+say 5 % 3;   # 2
+The result of the modulo operation $a % $b is equivalent to the following wordy expression:
+
+$a - $b * floor($a / $b);
+Here, floor is the function that rounds the value down. Take one of the examples above: 10 % 3. The result of it means that 3 can be subtracted from 10 a few times until 1 remains, which is less than 3 and thus cannot be decreased by it.
+
+Traditionally, the modulo operator is used with integer operands but it still works fine with rational and floating-point numbers. The values of these types can be accepted by the % operator without type casts. Examine the following examples:
+
+say 10 % 3.3;   # 0.1 (Rat numbers)
+
+say 10E1 % 3E0; # 1 (same as 100 % 3 but with Num operands)
+
+%%
+
+The %% is called a divisibility operator. It tells if the left operand can be integer divided by the right operand without reminder.
+
+For example, the integer division of 10 by 3 gives 1 in the reminder, and thus the %% operator will return false. If you divide 12 by 3 than there is no remainder, and the result is true:
+
+say 10 %% 3; # False
+say 12 %% 3; # True
+The result of $a %% $b is the same as the following comparison:
+
+($a % $b) == 0
+It can be used to check the condition in the loop, for example (we will see loops in more detail in Chapter 7, Flow Control), to print the message once per every 1000 iterations:
+
+for (0 .. 100_000) {
+    say $_ if $_ %% 1000;
+    # do some work
+}
+It prints 1000, 2000, 3000, etc., which allows you to see the progress of the program but does not flood the output with too many numbers.
+
+div and mod
+
+This pair of operators, div and mod, are the integer analogs of the / and % operators. The div and mod treat their operands as Int values, and the result is also integer.
+
+Examine a few examples.
+
+say 100 div 3; # 33
+say 10 div 3;  # 3
+
+say 10 div 5;  # 2
+The mod operator returns the reminder of integer division:
+
+say 10 mod 3; # 1
+The non-integer operands must be explicitly converted before passing them to the div and mod operators. Otherwise, a compile-time error occurs:
+
+$ perl6 -e'say 10 div 3.3'
+Cannot resolve caller infix:<div>(Int, Rat); none of these signatures match:
+    (Int:D a, Int:D b)
+    (int $a, int $b --> int)
+  in block <unit> at -e line 1
+The error message informs us that the compiler sees that the div operator takes an Int and a Rat operands, while it only expects to see Int or int there.
+
++&, +| and +^
+
+The three operators starting with a plus character, +&, +| and +^ are bitwise operators, that do the AND and OR and XOR operations over the operands. The operands must be convertible to integers.
+
+say 1024 +| 512; # 1536
+say 512 +| 512;  # 512
+
+say 1024 +& 512; # 0
+say 512 +& 512;  # 512
+
+say 1024 +^ 512; # 1536
+say 512 +^ 512;  # 0
+The bitwise operations are performed independently over corresponding bits of the operands.
+
+If the operands are not integer values, then they will be converted to integers by calling the .Numeric.Int methods on it. Thus, first it will the operand is converted to the Numeric value and then to Int. From the practical perspective it means, in particular, that floating-point values will be truncated. Consider the following examples in comparison with the examples above:
+
+say 512.67 +| 512;  # 512
+say 512.67 +& 512;  # 512
++< and +>
+
+The +< and +> are the integer shift operators. They shift the bits of its integer operands to left and right for the distance indicated by the second operand.
+
+say 512 +< 2;  # 2048
+say 2048 +> 2; # 512
+~&, ~| and ~^
+
+These operators are the logical operators over strings. They start with the ~ character to follow the general idea that string operations use a tilde. The ~&, ~| and ~^ operators do the AND, OR and XOR operations, respectively.
+
+Before the bitwise operation, both operands are converted into the string representation (if necessary). Then, the operation is executed over the corresponding bits.
+
+Let us consider an example of how to make the ASCII alphabetic character lower. In ASCII, the difference between the code of the lowercase and uppercase letter is 32 (0x20 in hexadecimal notation). So, to make the letter lowercase, execute a ~| operation on it and 0x20 (which is the code of space) to set the fifth bit to 1.
+
+say 'A' ~| ' '; # a
+With the ~^ operator, you may organise the behaviour for changing the case:
+
+say 'a' ~^ ' '; # A
+say 'A' ~^ ' '; # a
+?&, ?| and ?^
+
+These operators are the AND, OR and XOR operators over Boolean values. The following code examples list the whole table of all the possible combinations of the operands.
+
+say True ?| True;   # True
+say True ?| False;  # True
+say False ?| True;  # True
+say False ?| False; # False
+
+say True ?& True;   # True
+say True ?& False;  # False
+say False ?& True;  # False
+say False ?& False; # False
+
+say True ?^ True;   # False
+say True ?^ False;  # True
+say False ?^ True;  # True
+say False ?^ False; # False
+gcd and lcm
+
+The gcd and lcm operators calculate the great common divisor and the least common multiple for the given two numbers. These operators are usually not included in the list of operators built-in into many other languages. In Perl 6, however, you don’t need to include any libraries to use them. Consider couple of examples of using the gcd and lcm operators.
+
+my $a = 20;
+my $b = 30;
+
+say $a gcd $b; # Prints 10
+say $a lcm $b; # Prints 60
+Notice that the syntax requires that both gcd and lcm names are used as operators, not as functions. The following code is incorrect:
+
+say gcd($a, $b);
+say lcm($a, $b);
+It will generate compiling errors:
+
+===SORRY!=== Error while compiling /Users/ash/Books/Packt/code/operators/gcd.pl
+Undeclared routines:
+    gcd used at line 4
+    lcm used at line 5. Did you mean 'lc'?
+For the prime numbers, the gcd operators returns 1, as there are no other divisors:
+
+say 17 gcd 31; # 1
+The lcm operators returns a number equal to a product of its operands in the numbers are prime:
+
+say 17 lcm 31; # 527
+Of course, this is not the case for other numbers, for example:
+say 20 lcm 40; # 40
+x
+
+The x binary operator is a string repetition operator. It repeats a string the given number of times, as it is seen in the example:
+
+my $string = 'Developers ';
+say $string x 5;
+This code prints the string containing the initial value of the $string variable five times. The original value is not changed, obviously.
+
+To modify the string and to save the result in the same variable, use the assignment form of the operator:
+
+$string x= 2;
+say $string;
+Now, the $string value is twice as long as it was before.
+
+xx
+
+The xx is the list repetition operator. It is visually and ideologically similar to the x operator but it works with lists. Consider an example:
+
+my @data = (10, 20);
+my @big_data = @data xx 100;
+say @big_data;
+Here, the @data array will be repeated 100 times, and the @big_data variable will contain 100 copies of it.
+
+Be careful not to accidentally mix the xx and x operators. If you use x instead of xx, then compiler will not worn you but instead it will treat the argument as a string and will perform string concatenation instead of repeating an array.
+
+~
+
+The ~ operator concatenates two strings. 
+
+say 'a' ~ 'b'; # ab
+In case the operands are not strings, they are converted to strings before the operation is applied:
+
+say 10 ~ 20;
+This prints the string 1020.
+A form with assignment may also be quite useful in some applications:
+my $string = 'Hello, ';
+$string ~= 'World!';
+say $string; # Hello, World!
+[NOT VISIBLE IN PDF] &, |, and ^
+
+These three operators create junctions. We have already seen junctions in the simplest form of having multiple values in the save variable at the same time:
+
+my $odd = 1 | 3 | 5 | 7 | 9;
+my $value = 5;
+say 'Value is odd' if $value == $odd;
+The code prints Value is odd, as the value in the $value variable is one of the values of the $odd junction.
+[paragraph] The & operator creates a so-called all junction, where all the values must be non-empty.
+my $a = 3;
+my $b = 4;
+
+my $both = $a & $b;
+say 'ok' if $both; # ok
+Finally, the ^ operator creates an any junction, where only one of the operands must be evaluated as true.
+my $c = 'OK';
+my $d = '';
+
+my $one = $c ^ $d;
+say 'ok' if $one; # ok
+It is important that the values created with either of the operators are junctions, you can see their type by calling the WHAT method:
+say $one.WHAT; # (Junction)
+Do not confuse the &, |, and ^ operators with boolean ones: &&, ||, and ^^.
+
+does
+
+The does operator mixes a role into an object. We will talk about mix-ins in Chapter 8, Object-Oriented Programming. Anyway, consider a brief example:
+
+class Animal {}
+
+role Barking {
+    method bark() {
+       say "Bow-wow!";
+    }
+}
+
+my $dog = Animal.new();
+$dog does Barking;
+$dog.bark();
+Here, the $dog variable is first created as an instance of the Animal class. Then, the behaviour of the Barking role is attached to it. After that, the $dog can bark().
+but
+
+The but operator mixes in a role to an object, similar to how the does operator is doing that. In addition, but allows to use already instantiated objects, as in the following example:
+
+my $value = 0 but True;
+say 'It is true' if $value;
+The $value becomes True in the boolean context now, while it still contains pure zero.
+[paragraph] In case of mixing in roles, the same object starts behaving as an object belonging to different types depending on the situation:
+role Barking {
+    method bark() {
+        say "Bow-wow!";
+    }
+}
+
+my $dog = 14 but Barking;
+say $dog;    # 14
+$dog.bark(); # Bow-wow!
+The $dog variable is printed as its numeric value but it is also possible to call the bark method on it.
+
+Introspection shows that the variable now is a combination of both: 
+
+say $dog.WHAT;
+This command prints (Int+{Barking}).
+
+cmp
+
+This is a universal comparison operator. Its versatility allows to compare both numeric and string data.
+
+say 10 cmp 2;     # 2 is less than 10
+say "10" cmp "2"; # but "2" is more than "10"
+The return value of one of the three possible values of the Order enumeration: Less, Same, or More. The above program prints the following:
+
+More
+Less
+In case the operands are of different types, they are converted to the same type:
+
+say 5 cmp "5"; # Same
+When you compare pairs with cmp, they are compared in such a way that keys are compared first, and values are compared second. Examine the following examples, where we create three pairs with different keys and values and compare them in different combinations:
+
+my $a = alpha => '2';
+my $b = beta => '1';
+my $c = alpha => '1';
+
+say $a cmp $b; # Less
+say $a cmp $c; # More
+In the case of $a cmp $b, their keys are sortable alphabetically, and the values are not important. IN the case of $a cmp $c, both keys are equal, so the values of each pair is also checked.
+
+leg
+
+The leg operator got its name from the words less, equal, greater. It compares two operands as strings. If the values are not strings, they are stringified first.
+
+say 10 leg 2;     # Less
+say "10" leg "2"; # Less
+say 5 leg "5";    # Same
+The result is one of the values of the Order enumeration (notice that despite the e in the operator name, the equality of operands returns the value of Same).
+
+<=>
+
+This is a comparison operator that converts its operands to the Real type if necessary. The following example demonstrates the results of comparing the same data that we tried with the cmp and leg operators.
+
+say 10 <=> 2;     # More
+say "10" <=> "2"; # More
+say 5 <=> "5";    # Same
+.., ..^, ^.., and ^..^
+
+This group of binary operators is used to create ranges. The two operands define the left and right edges of the range. The presence of the ^ character indicates that the corresponding edge is open (thus, it does not include the given number).
+
+Run the following example to see how it works.
+
+.say for 1 .. 5;   # Prints the numbers: 1, 2, 3, 4, 5
+.say for 1 ..^ 5;  # 1, 2, 3, 4
+.say for 1 ^.. 5;  # 2, 3, 4, 5
+.say for 1 ^..^ 5; # 2, 3, 4
+You may choose your own style regarding the spaces around the operators. So, both 1..^5 and 1 ..^ 5 are acceptable. But it is not possible to insert a space between the characters of the operator, such as: 1 .. ^5.
+
+==, !=, and ≠
+
+These two operators compare the two operands for equality (==) or non-equality (!=). In Perl 6, a number of variations of these operators define so that they correctly work with operands of different types.
+
+say 'Equal' if 10 == 10;
+say 'Not equal' if 3.14 != pi;
+If necessary, both operands are converted to Real values first:
+say 'Also equal' if "10" == 10;
+The != operator has a Unicode synonym ≠:
+say 'Not equal' if e ≠ pi;
+As a funny example, you may also test the !≠ operator, which is constructed similar to how the != operator is assembled: the exclamation sign negates the next character. This works in Perl 6 but avoid using it in practice; use a conventional == instead.
+
+To compare strings, use the eq and ne operators, which are described later in this chapter.
+
+<, <=, ≤, >, >=, and ≥
+
+This set of operators is used for numerical comparison of two operands. The operands are converted to Real if they are not numeric.
+
+say 10 < 2;
+say "10" < "2";
+In both cases in this example, the result of comparison is False.
+[paragraph] The two Unicode operators ≤ and ≥ are synonyms to the ASCII forms <= and >=.
+say 10 ≤ 10; # True
+say 20 ≥ 10; # True
+eq and ne
+
+The eq and ne operators compare two strings and return Boolean value.
+
+say 'abc' eq 'abc'; # True
+say 'abc' ne 'def'; # True
+The non-string operands are converted to strings before comparison.
+say 13 eq '13'; # True
+To compare numbers, use the == and != operators.
+
+gt, ge, lt, and le
+
+This collection of strings comparison operators perform operations greater, greater or equal, later, and less or equal respectively. The operators work with strings, so the operands are converted to the Str type if necessary. The return value is a Boolean value.
+
+say 'a' lt 'b';
+say 'beer' le 'water';
+
+say 'z' gt 'x';
+say 'stone' ge 'paper';
+In all the above examples, the result is True.
+before and after
+
+The before and after operators return True of False depending on the order of operands. In Perl 6, these operators are multi-functions that exist for arguments of different types. They work well with both numerical and string data. 
+
+Consider examples, where comparing strings and numbers give opposite results:
+
+say 10 before 2; # False
+say 10 after 2;  # True
+
+say "10" before "2"; # True
+say "10" after "2";  # False
+Unlike the general comparison operators cmp, the ordering operators before and after return a Boolean value.
+eqv
+
+The eqv operator tests if the its two operands are equivalent. The term assumes that both operands are of the same type and contain the same value. The following examples demonstrate the work of the operator.
+
+Two integer values are equivalent:
+
+my $a = 42;
+my $b = 42;
+say $a eqv $b; # True
+If one of the values is of another type, say a string, than the result if False even if the value can be converted to the same integer:
+
+my $a = 42;
+my $c = "42";
+say $a eqv $c; # False
+The eqv operator works with arrays:
+
+my @a = 1, 2, 3;
+say @a eqv [1, 2, 3]; # True
+And with more complex data structures, say, with nested arrays:
+
+my @b = [[1, 3], [2, 4]];
+say @b eqv [[1, 3], [2, 4]]; # True
+===
+
+The === operator is the value identity operator. For the scalar values, it gives the same results as the eqv operator: it returns true when both the types and the values of the operands are the same:
+
+my $a = 42;
+my $b = 42;
+say $a === $b; # True
+Another example with a string and an integer:
+
+my $a = 42;
+my $c = "42";
+say $a === $c; # False
+For classes, the === operator returns True if both operands point to the same object:
+class O {
+}
+
+my $o1 = O.new();
+my $o2 = O.new();
+say $o1 === $o2; # False: same class but different objects
+
+my $o3 = $o1;
+say $o1 === $o3; # True: the same object
+More on classes in Chapter 8, Object-Oriented Programming.
+
+=:=
+
+This operator returns true if both operand are bound to the same variable, or, more precisely, to the same container.
+
+Binding in Perl 6 means that another variable points to the same container and you may change its value using two names. This is demonstrated in the following example:
+
+my $a = 42;
+my $b := $a;
+$b = 30;
+say $a; # 30
+Here, the value that was placed in the $a variable, is changed using the $b alias. The =:= operator returns true for such names:
+say $a =:= $b; # True
+~~
+
+The ~~ operator is the smartmatch operator. It performs different type of comparison for the operands of different types.
+
+my $int = 10;
+say $int ~~ 10; # True
+
+my $str = 'str';
+say $str ~~ 'str'; # True
+
+say $str ~~ /^ str $/; # ｢str｣
+As you can see from the output from this test program, the result of the ~~ operator is not always a Boolean value.
+Internally, the $a ~~ $b construction with the smartmatch operator is equivalent to the call of $b.ACCEPTS($a). The ACCEPTS method is a built-in method defined for all types in Perl 6. The above three smartmatch operations may be re-written in the following way:
+
+say 10.ACCEPTS($int);
+say 'str'.ACCEPTS($str);
+say /^str$/.ACCEPTS($str);
+=~=
+
+This is one of the most unusual operators in programming languages. In Perl 6, the =~= operator compares the values for approximate-equality.
+
+The result of approximate comparison is True if the difference between the operands is less than the the value of the $*TOLERANCE variable. Its default value is 1E-15.
+
+Let us check the two approximations of the value of pi:
+
+say pi =~= 3.14159265358979323846;
+say pi =~= 3.14;
+The first one returns True, while the second is False because it is not accurate enough.
+[HEADER2, not visible in PDF] &&, ||, and ^^
+
+These operators are operators for Boolean logic that perform operations AND, OR and exclusive OR.
+
+With Boolean operands, the result is either True or False with the only exception for the True ^^ True expression, which returns Nil.
+
+The following set of examples demonstrate all possible combinations for Boolean operands.
+
+say False && False; # False
+say True  && True;  # True
+say True  && False; # False
+say False && True;  # False
+
+say False || False; # False
+say True  || True;  # True
+say True  || False; # True
+say False || True;  # True
+
+say False ^^ False; # False
+say True  ^^ True;  # Nil
+say True  ^^ False; # True
+say False ^^ True;  # False
+With operands of other types, the either return a Boolean value, or one of the operands. Let us examine the operators one by one.
+
+The && operator returns the first operand, which in Boolean context can be treated as a False value or the last operand if all the operands are True in Boolean context. For example, the result of the expression 42 && 14 is 14. Here, both operands are True, thus the second operand is returned after the operation. 
+
+Consider other examples:
+
+say 42 && 14;          # 14
+say 0 && 14;           # 0
+say 'Karl' && 'Marta'; # Marta
+
+my $text;
+say $text && 'default text'; # (Any)
+say 'default text' && $text; # (Any)
+In the expression 0 && 14, the first operand is False, so the && operator returns it immediately without evaluating the second one. The second expression has two operands, which are True, thus Marta is the result. Finally, the undefined string is returned in the last two expressions.
+
+Similarly, the || operator returns the first True operand. If all operands happened to be False, then the last one is returned. Examine the following examples that use the same operands as we used in the earlier tests of the && operator:
+
+say 42 || 14;          # 42
+say 0 || 14;           # 14
+say 'Karl' || 'Marta'; # Karl
+
+my $text;
+say $text || 'default text'; # default text
+say 'default text' || $text; # default text
+The logic of the ^^ operators for non-Boolean operands is a bit more tricky. If there are only one True operand, then that operand is returned. If there are none, then the last operand is returned. If there are more than one True operands, the value of Nil is returned.
+
+say 42 ^^ 14;          # Nil
+say 0 ^^ 14;           # 14
+say 'Karl' ^^ 'Marta'; # Nil
+
+my $text;
+say $text ^^ 'default text'; # default text
+say 'default text' ^^ $text; # default text
+All the tree operators may be chained, for example, to select the first acceptable value or to take the default one:
+
+my $name = '';
+my $first_name = '';
+say $name || $first_name || 'No name'; # No name
+//
+
+The // operator is called the defined-or operator. It returns the first of the defined operands. The most obvious use case for // is to supply default values for input data, as it is shown in the example:
+
+my $planet;
+
+# Some code that may change the value of $planet.
+# $planet = 'Mars';
+
+say $planet // 'Earth';
+min and max
+
+The min and max operators return, respectively, either minimum or maximum operand. To compare the values, the operators use the same semantics as defined for the cmp operator.
+
+say 10 min 2; # 2
+say "10" min "2"; # 10
+
+say 10 max 2; # 10
+say "10" max "2"; # 2
+Notice, that in Perl 6 there are functions min and max, which do the same but use function call syntax:
+say min(2, 10); # 2
+say max(2, 10); # 10
+
+say min("2", "10"); # 10
+say max("2", "10"); # 2
+Both operator and function can be used to find minimums and maximums of more than two values:
+say 10 min 20 min 30; # 10
+say max(10, 20, 30);  # 30 
+ff, ^ff, ff^, and ^ff^
+
+fff, ^fff, fff^, and ^fff^
+
+=>
+
+The => operator creates pairs. It takes the left operand as the key and the right operand as the value.
+
+my $pair = 'key' => 'value';
+The type of the created object is Pair.
+
+With the => operator, the key may be not quoted if it passes the restrictions for identifiers in Perl 6, for example:
+my $pair1 = alpha => 1;
+my $pair2 = beta => 2;
+,
+
+Comma creates a list of the operands provided. In the following example, the list is saved in the array variable:
+
+my $a = 10;
+my $b = 20;
+my $c = 30;
+
+my @a = $a, $b, $c;
+:
+
+This operator does not look like an ordinary infix operator. It is used to separate the invocant argument in method calls. The method call in this call looks like a call to a regular function. Let us see this on a simple example.
+
+First, we call the index method on the $string.
+
+my $string = 'Hello, World!';
+my $pos = $string.index('W');
+say $pos; # 7
+The same effect can be achieved by the following code:
+my $pos = index($string: 'W');
+say $pos; # 7
+As you see, the $string variable is passed as the first argument of the index routine and is separated from the second argument with a colon.
+Z
+
+The Z operator works like a zipper and creates a new array out of the given two arrays. The elements in the new array are picked up from the elements of the operands as the zipper connects its item.
+
+The behaviour of the Z operator can be clearly seen on the following example.
+
+my @odd = 1, 3, 5, 7, 9;
+my @even = 2, 4, 6, 8, 10;
+my @all = @odd Z @even;
+say @all;
+This program prints the following list that contains nested lists based on the elements from the both @odd and @even arrays:
+
+[(1 2) (3 4) (5 6) (7 8) (9 10)]
+In case one of the array operands are of different length, the result of the Z operator will contain so many elements as the shortest one contains.
+
+X
+
+The cross operator X creates all possible combinations of the elements of its operands. Compare the work of this operator on the same data as we used in the example for the Z operator.
+
+my @odd = 1, 3, 5, 7, 9;
+my @even = 2, 4, 6, 8, 10;
+my @all = @odd X @even;
+say @all;
+This time, the resulting array is much bigger:
+[(1 2) (1 4) (1 6) (1 8) (1 10) (3 2) (3 4) (3 6) (3 8) (3 10) (5 2) (5 4) (5 6) (5 8) (5 10) (7 2) (7 4) (7 6) (7 8) (7 10) (9 2) (9 4) (9 6) (9 8) (9 10)]
+...
+
+As an infix operator, the three dots are the sequence operator. Perl 6 contains some amount of built-in magic, which does what you mean. Consider a few examples with the ... operator.
+
+say 5 ... 10;
+say 'a' ... 'f';
+These two lines print the following sequences:
+(5 6 7 8 9 10)
+(a b c d e f)
+The result of the ... operation is a sequence. Do not mix this operator with the .. operator, which creates ranges.
+
+If you assign the result to a list, then the operators may be interchangeable:
+my @a = 5...10;
+my @b = 5..10;
+say @a; # [5 6 7 8 9 10]
+say @b; # [5 6 7 8 9 10]
+The sequence operator can demonstrate more complicated behaviour:
+my @squares = 1, 2, 4 ... 64;
+say @squares;
+In this example, using the pattern, the ... operator creates the sequence of squares:
+
+[1 2 4 8 16 32 64]
+Another interesting example of using the ... operator is the way to generate Fibonacci numbers by presenting the formula with the Whatever (*) character:
+
+my @fib = 0, 1, * + * ... *;
+say @fib[0..10];
+The code creates a lazy list @fib, whose elements will be calculated on demand. The first ten numbers are printed:
+(0 1 1 2 3 5 8 13 21 34 55)
+:= and ::=
+
+These two operators create bindings. Bindings are synonyms that can be used instead of the original variable names to access their values.
+
+
+
+and
+
+andthen
+
+or
+
+orelse
+
+==>
+
+<==
+
+Ternary operator ?? !!
+
+The ?? !! operator is the only ternary operator in Perl 6. It is also called the conditional operator. It takes three operands: a condition and two values. If the condition is evaluated as True, the second operand is returned as the result of the operation. Otherwise, the third operand is returned.
+
+say pi < 3 ?? 'Less than 3' !! 'More than 3';
+In this example, the condition pi < 3 is False, so the second string More than 3 is printed.
+
+Ternary operator can (with care) be used for testing more than one condition, for example:
+
+my $value = rand;
+say $value;
+say $value < 0.3 ?? '0.0 to 0.3'
+ !! $value < 0.5 ?? '0.3 to 0.5'
+ !! $value < 0.7 ?? '0.5 to 0.7'
+ !!                 '0.7 to 1.0';
+In such cases, formatting of the code should help to understand the idea of the developer.
+Prefix operators
+
+++
+
+--
+
+?
+
+!
+
++
+
+-
+
+~
+
+|
+
+||
+
++^
+
+~^
+
+?^
+
+^
+
+temp
+
+let
+
+not
+
+so
+
+Postfix operators
+
+.
+
+.&
+
+.=
+
+.^
+
+.?
+
+.+
+
+.*
+
+». / postfix >>.
+
+.postfix / .postcircumfix
+
+.:
+
+.::
+
+++
+
+--
+
+Circumfix operators
+
+[]
+
+Postcircumfix operators
+
+[ ]
+
+{ }
+
+< >
+
+« »
+
+( )
+
+postfix .postfix / .postcircumfix
+
+
+
+meta
+
+hyper
+
+R
+

@@ -1,0 +1,310 @@
+Perl 6 is a language, which was developing entirely in the XXI century. Not a surprise that it comes with built-in support of basic concepts, which make easy to create application that support parallel and concurrent programming.
+
+In this chapter, we will cover the following topics.
+
+Channels
+Promises
+Threads
+Schedulers
+Locks
+Junctions
+
+Junctions are one of the simplest examples of where Perl 6 can work in parallel. In the version of Rakudo, which is available at the moment of writing this book, this feature is not fully implementing. It is still possible to run the code but currently within a single thread.
+
+A junction is a value that keeps many values at the same time. Examine the following code:
+
+my $j = 1 | 3 | 5;
+say 'OK' if $j == 3;
+say 'Not OK' if $j != 2;
+The variable $j is a junction and keeps three odd numbers, 1, 3, and 5. You may compare $j with an integer and get the Boolean True if the value is one of the values hosted by the junction. In the case of comparing with 3 it is True, while the second comparison with 2 fails.
+
+Autothreading
+
+Now try passing a junction to a function that takes a scalar:
+
+sub f($x) {
+    say $x;
+    return $x;
+}
+
+say 'OK' if f(1 | 3 | 5) == 3;
+say 'Not OK' if f(1 | 3 | 5) != 2;
+The behaviour is intuitively understandable: the function is executed for each values of the junction separately, and the returned values form another junction, which is actually is taken for the comparison.
+
+The code above with junctions as an argument of the function works as the code below, where function receives a single scalar value:
+
+say 'OK' if f(1) | f(3) | f(5) == 3;
+say 'Not OK' if f(1) | f(3) | f(5) != 2;
+Moving junction outside of the function argument is called autothreading. In theory, the code from the last example may be executed in parallel.
+
+Now let us move to how you can create threads explicitly.
+
+Threads
+
+In Perl 6, there is the Thread class, which takes care of creating and running threads. To see, in which thread you are in at the moment, use the $*THREAD pseudo constant.
+
+say $*THREAD;
+It returns a value of the Thread class, and the default stringified representation of it prints the identifier and the name of the thread:
+
+Thread #1 (Initial thread)
+Don’t rely on the particular value of the thread identifier, it may be different even for the main thread.
+
+Starting a thread
+
+In this and in the following sections, we will examine the methods that the Thread class offers. We will start, though, with the start method, which creates a threads and starts its execution.
+
+In the following example, three threads are created. Each of them receives a name and a code block. Code blocks do the same for each thread and only print the value of the $*THREAD variable, which will be different within different threads.
+
+say $*THREAD;
+
+my $t1 = Thread.start(name => 'Test 1', sub {say $*THREAD});
+my $t2 = Thread.start(name => 'Test 2', sub {say $*THREAD});
+my $t3 = Thread.start(name => 'Test 3', sub {say $*THREAD});
+
+say $t1.WHAT;
+say $t2.WHAT;
+say $t3.WHAT;
+Run the program and see at what it prints. Your output may differ from the below snippet:
+
+Thread #1 (Initial thread)
+Thread #3 (Test 1)
+(Thread)
+Thread #5 (Test 3)
+(Thread)
+Thread #4 (Test 2)
+(Thread)
+As you see, the program prints from four different threads: initial thread #1 and three threads that we created. They got identifiers 3, 4, and 5. The Rakudo developers said me that the thread # is probably used by the virtual machine during startup. Again, the main property of these numbers is that they are unique but not necessarily go in order.
+
+Also notice that the output of different threads is overlapping. Running a programme several times most likely will give different results. 
+
+The threads are created at the moment of Thread.start() call and then the execution goes back to the main thread. The easiest way to see this is to embed different delays in the sub used as a thread code block.
+
+In the following program three anonymous threads are created. Their names are different, as well as the delay and the output they produce in their bodies. 
+
+say $*THREAD;
+
+Thread.start(
+    name => 'Sleep 3 seconds',
+    sub {
+        say $*THREAD;
+        sleep 3;
+        say 1;
+    });
+
+Thread.start(
+    name => 'Sleep 2 seconds',
+    sub {
+        say $*THREAD;
+        sleep 2;
+        say 2;
+    });
+
+Thread.start(
+    name => 'Sleep 1 second',
+    sub {
+        say $*THREAD;
+        sleep 1;
+        say 3;
+    });
+Run it and this is what you will get in the console:
+
+Thread #1 (Initial thread)
+Thread #3 (Sleep 3 seconds)
+Thread #4 (Sleep 2 seconds)
+Thread #5 (Sleep 1 second)
+3
+2
+1
+The first four lines are printed immediately after the program start, while the rest is printed with the delay: each number after the delay of one second. So, the Thread.start() creates a thread and returnes, while the thread is executing in parallel with the main program (and with other threads).
+
+As threads are working in parallel, it is not possible to predict, in which order they will produce side effects (such as printing to the console). Look at the program, which creates two threads, each of which prints five numbers. The first thread prints numbers from 1 to 5, while the second one prints the numbers from 11 to 15.
+
+Thread.start(sub {
+    .say for 1..5;
+});
+
+Thread.start(sub {
+    .say for 11..15;
+});
+Both threads are executed in parallel. Actual implementation, whether the code is distributed over different cores of the processor of if threads are imitated by granting them dedicated time atoms, is not defined in the language specification, so you should not count on either implementation when creating threads in Perl 6.
+
+Run the program a few times and see that the results are different.
+
+1
+11
+12
+2
+3
+13
+4
+5
+14
+15
+It may also be that the thread, which was created the second, may print before the first thread.
+
+11
+1
+2
+12
+13
+3
+14
+15
+4
+5
+Using the Thread.start() method is easy but in some cases you may want to have finer control over creation and running threads.
+
+Creating and running a new thread
+
+To create a thread object, use the constructor of the Thread class. It takes the name of the thread and the code block in the corresponding named parameters name and code:
+
+my $t = Thread.new(
+    name => 'My thread',
+    code => sub {
+        say 'Hi there!';
+    }
+);
+The thread is now created but is not activated. To run it, the run method must be called:
+
+$t.run();
+Execute the following example and examine the order, in which the lines appear on the screen.
+
+my $t = Thread.new(
+    name => 'My thread',
+    code => sub {
+        say 'Start';
+        sleep 2;
+        say 'End';
+    }
+);
+
+say 'Before';
+$t.run();
+say 'After';
+As soon as the thread is run, it prints its two messages, Start and End, separated by a delay of two seconds.
+
+Before
+After
+Start
+End
+It is possible to postpone the main program until the thread finishes its work. Use the finish method:
+
+say 'Before';
+$t.run();
+$t.finish();
+say 'After';
+The program will wait until the thread code block finishes its work, and only after that continues from the next instruction:
+
+Before
+Start
+End
+After
+The finish method has a synonym join: $t.join() does exactly the same as $t.finish().
+
+The id and name method
+
+In the section Starting a new thread, we already have seen a few examples of how identifiers are assigned to the new threads. In the Thread class, there is a method that returns an id.
+
+say $*THREAD;
+
+my $t1 = Thread.start(sub {});
+my $t2 = Thread.start(sub {});
+my $t3 = Thread.start(sub {});
+
+say $t1.id();
+say $t2.id();
+say $t3.id();
+One of the possible outputs of the program is this:
+
+3
+4
+5
+Thread identifiers may be use if you want to keep some tracking information in the main thread, for example.
+
+Another way of identifying threads is using names. Names are string labels that you assign to the thread when creating it via the name argument:
+
+my $t1 = Thread.start(name => 'My thread one', sub {});
+my $t2 = Thread.start(name => 'My thread two', sub {});
+my $t3 = Thread.start(name => 'My thread three', sub {});
+
+say $*THREAD.name();
+say $t1.name();
+say $t2.name();
+say $t3.name();
+The name of the main thread is Initial thread:
+
+Initial thread
+My thread one
+My thread two
+My thread three
+The names should not be unique, so you are free to choose any names you want.
+
+Printing thread as a string
+
+The Str method of the Thread class defines the behaviour when the thread object is being printed. Say, via the say function:
+
+my $t1 = Thread.start(name => 'My thread one', sub {});
+my $t2 = Thread.start(name => 'My thread two', sub {});
+my $t3 = Thread.start(name => 'My thread three', sub {});
+
+say $*THREAD;
+say $t1;
+say $t2;
+say $t3;
+The default string contains the number of the thread and its name (if it is defined).
+
+Thread #1 (Initial thread)
+Thread #3 (My thread one)
+Thread #4 (My thread two)
+Thread #5 (My thread three)
+In this example, all the threads have different ids (they are always different) and different names (this is defined by the programmer).
+
+Lifetime threads
+
+When creating a new thread, it is possible to set the app_lifetime attribute, which requests that the thread lives until the end of the main program. Otherwise it will be terminated after its body is executed. To add this flag, either add it as :app_lifetime or by explicitly passing the True value to the constructor: app_lifetime => True.
+
+Thread.new(
+    name => 'Long thread',
+    code => sub {
+        say 'OK';
+    },
+    :app_lifetime,
+).run().join();
+
+say 'Done';
+It is important to wait for the thread (using either finish or join method). Otherwise the main thread may stop executing earlier than thread did its work.
+
+Promises
+
+await
+start {say $*THREAD;},
+start {say $*THREAD;},
+start {say $*THREAD;};
+
+Promise statuses
+
+Giving a promise
+
+Keeping a promise
+
+Breaking a promise
+
+Using the wait function
+
+Channels
+
+Creating channels
+
+Writing to a channel
+
+Reading from a channel
+
+Controlling the state of a channel
+
+Suppliers
+
+Schedulers
+
+Locks
+
+Summary
