@@ -43,6 +43,7 @@ grammar G {
 
     rule assignment {
         <variable> '=' <value> {
+            say $<value>.WHAT;
             %var{$<variable><sigil>}{$<variable><identifier>} = ~$<value>;
         }
     }
@@ -61,9 +62,13 @@ grammar G {
 }
 
 my $prog = q:to/END/;
-my $x;
-$x = 100;
-say $x;
+my $alpha;
+$alpha = 50;
+say $alpha;
+
+my $beta;
+$beta = 60;
+say $beta;
 END
 
 my $result = G.parse($prog);
