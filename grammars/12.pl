@@ -1,8 +1,7 @@
-# update variable-declaration and assign %scalar/%array
+# work on say
+# try two vars
 
-
-my %scalar;
-my %array;
+my %var;
 
 grammar G {
     rule TOP {
@@ -26,10 +25,7 @@ grammar G {
 
     rule variable-declaration {
         'my' <variable> {
-            given $<variable><sigil> {
-                when '$' {%scalar{$<variable><identifier>} = 'undefined';}
-                when '@' {%array{$<variable><identifier>} = 'undefined';}
-            }                
+            %var{$<variable><sigil>}{$<variable><identifier>} = 'undefined';
         }
     }
 
@@ -46,7 +42,9 @@ grammar G {
     }
 
     rule assignment {
-        <variable> '=' <value>
+        <variable> '=' <value> {
+            %var{$<variable><sigil>}{$<variable><identifier>} = ~$<value>;
+        }
     }
     
     token value {
@@ -58,19 +56,25 @@ grammar G {
     }
 
     rule say-function {
-        'say' <variable>
+        'say' <variable> {
+            say %var{$<variable><sigil>}{$<variable><identifier>};
+        }
     }
 }
 
 my $prog = q:to/END/;
 my $x;
-my @array;
+my $answer;
+
 $x = 100;
+$answer = 42;
+
 say $x;
+say $answer;
+
 END
 
 my $result = G.parse($prog);
-say $result;
+#say $result;
 
-say %scalar;
-say %array;
+#say %var;

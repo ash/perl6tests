@@ -1,8 +1,22 @@
 # update variable-declaration and assign %scalar/%array
 
+# try making separate paths: 
+    # token variable {
+    #     | <scalar-variable>
+    #     | <array-variable>
+    # }
 
-my %scalar;
-my %array;
+    # token scalar-variable {
+    #     '$' <identifier>
+    # }
+
+    # token scalar-variable {
+    #     '$' <identifier>
+    # }
+
+# but instead make %var hash two-level
+
+my %var;
 
 grammar G {
     rule TOP {
@@ -26,10 +40,7 @@ grammar G {
 
     rule variable-declaration {
         'my' <variable> {
-            given $<variable><sigil> {
-                when '$' {%scalar{$<variable><identifier>} = 'undefined';}
-                when '@' {%array{$<variable><identifier>} = 'undefined';}
-            }                
+            %var{$<variable><sigil>}{$<variable><identifier>} = 'undefined';
         }
     }
 
@@ -72,5 +83,4 @@ END
 my $result = G.parse($prog);
 say $result;
 
-say %scalar;
-say %array;
+say %var;

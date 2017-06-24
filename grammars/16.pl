@@ -1,8 +1,8 @@
-# update variable-declaration and assign %scalar/%array
+# value + expression now
+# $x = $y + 3
 
 
-my %scalar;
-my %array;
+my %var;
 
 grammar G {
     rule TOP {
@@ -26,10 +26,7 @@ grammar G {
 
     rule variable-declaration {
         'my' <variable> {
-            given $<variable><sigil> {
-                when '$' {%scalar{$<variable><identifier>} = 'undefined';}
-                when '@' {%array{$<variable><identifier>} = 'undefined';}
-            }                
+            %var{$<variable><sigil>}{$<variable><identifier>} = 'undefined';
         }
     }
 
@@ -46,11 +43,19 @@ grammar G {
     }
 
     rule assignment {
-        <variable> '=' <value>
+        <variable> '=' <expression> {
+            %var{$<variable><sigil>}{$<variable><identifier>} = $<expression>.made;
+        }
+    }
+
+    rule expression {
+        | <value> '+' <expression> {$/.make($<value>.ast + $<expression>.ast)}
+        | <value>    {$/.make(~$<value>)}
+        | <variable> {$/.make(%var{$<variable><sigil>}{$<variable><identifier>})}
     }
     
     token value {
-        <number>
+        <number> {$/.make(+$<number>)}
     }
 
     token number {
@@ -58,19 +63,24 @@ grammar G {
     }
 
     rule say-function {
-        'say' <variable>
+        'say' <variable> {
+            say %var{$<variable><sigil>}{$<variable><identifier>};
+        }
     }
 }
 
 my $prog = q:to/END/;
 my $x;
-my @array;
-$x = 100;
-say $x;
+my $y;
+
+$x = 3;
+$y = 4 + $x;
+say $y;
+
 END
+
 
 my $result = G.parse($prog);
 say $result;
 
-say %scalar;
-say %array;
+say %var;

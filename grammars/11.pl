@@ -1,8 +1,7 @@
-# update variable-declaration and assign %scalar/%array
+# work on assignment
+# no need to read smth from <number>. everything will be in <value> but stringify ~$<value>
 
-
-my %scalar;
-my %array;
+my %var;
 
 grammar G {
     rule TOP {
@@ -26,10 +25,7 @@ grammar G {
 
     rule variable-declaration {
         'my' <variable> {
-            given $<variable><sigil> {
-                when '$' {%scalar{$<variable><identifier>} = 'undefined';}
-                when '@' {%array{$<variable><identifier>} = 'undefined';}
-            }                
+            %var{$<variable><sigil>}{$<variable><identifier>} = 'undefined';
         }
     }
 
@@ -46,7 +42,9 @@ grammar G {
     }
 
     rule assignment {
-        <variable> '=' <value>
+        <variable> '=' <value> {
+            %var{$<variable><sigil>}{$<variable><identifier>} = ~$<value>;
+        }
     }
     
     token value {
@@ -64,7 +62,6 @@ grammar G {
 
 my $prog = q:to/END/;
 my $x;
-my @array;
 $x = 100;
 say $x;
 END
@@ -72,5 +69,4 @@ END
 my $result = G.parse($prog);
 say $result;
 
-say %scalar;
-say %array;
+say %var;
