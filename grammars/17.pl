@@ -31,7 +31,7 @@ grammar G {
     }
 
     token variable {
-        <sigil> <identifier> {$/.make(%var{$<sigil><identifier>}{$<sigil><identifier>})}
+        <sigil> <identifier> {$/.make(%var{$<sigil>}{$<identifier>})}
     }
 
     token sigil {
@@ -49,12 +49,16 @@ grammar G {
     }
 
     rule expression {
-        | <value> '+' <expression> {$/.make($<value>.ast + $<expression>.ast)}
-        | <variable> '+' <expression> {$/.make($<variable>.ast + $<expression>.ast)}
+        | <term> '+' <expression> {$/.make($<term>.ast + $<expression>.ast)}
         | <value>    {$/.make(~$<value>)}
         | <variable> {$/.make(%var{$<variable><sigil>}{$<variable><identifier>})}
     }
     
+    rule term {
+        | <value> {$/.make($<value>.ast)}
+        | <variable> {$/.make($<variable>.ast)}
+    }
+
     token value {
         <number> {$/.make(+$<number>)}
     }
@@ -76,16 +80,24 @@ my $y;
 
 $x = 3;
 $y = 4 + $x;
-say $y;
+say $y; # 7
 
 my $z;
 $z = $x + $y;
-say $z;
+say $z; # 10
+
+my $a;
+$a = $z + 5;
+say $a; # 15
+
+my $b;
+$b = $a + $x + $y + $z + 7;
+say $b; # 42
 
 END
 
 
 my $result = G.parse($prog);
-say $result;
+#say $result;
 
 say %var;

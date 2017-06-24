@@ -75,7 +75,7 @@ my $y;
 
 $x = 3;
 $y = 4 + $x;
-say $y;
+say $y; # 7
 
 END
 

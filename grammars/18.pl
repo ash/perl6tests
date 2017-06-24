@@ -1,9 +1,5 @@
-# Using AST attributes
+# $z = $x + $y
 
-# use var in assignment (right side)
-# my $x = $y;
-# $/.make - $/.ast/made
-# notice with ~$<value>
 
 
 my %var;
@@ -35,7 +31,9 @@ grammar G {
     }
 
     token variable {
-        <sigil> <identifier>
+        <sigil> <identifier> {
+            $/.make(%var{$<sigil>}{$<identifier>})
+        }
     }
 
     token sigil {
@@ -47,18 +45,24 @@ grammar G {
     }
 
     rule assignment {
-        <variable> '=' <expression> {
+        <variable> '=' <expression> {            
             %var{$<variable><sigil>}{$<variable><identifier>} = $<expression>.made;
         }
     }
 
     rule expression {
+        | <term> '+' <expression> {$/.make($<term>.ast + $<expression>.ast)}
         | <value>    {$/.make(~$<value>)}
         | <variable> {$/.make(%var{$<variable><sigil>}{$<variable><identifier>})}
     }
+
+    rule term {
+        | <value> {$/.make($<value>.ast)}
+        | <variable> {$/.make($<variable>.ast)}
+    }
     
     token value {
-        <number>
+        <number> {$/.make(+$<number>)}
     }
 
     token number {
@@ -74,14 +78,19 @@ grammar G {
 
 my $prog = q:to/END/;
 my $x;
-$x = 100;
-
 my $y;
-$y = $x;
-say $y; # 100
+my $z;
+
+$x = 1;
+$y = 2;
+
+$z = $x + $y;
+say $z;
+
 END
 
+
 my $result = G.parse($prog);
-say $result;
+#say $result;
 
 say %var;
