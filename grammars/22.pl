@@ -23,7 +23,8 @@ grammar G {
     }
 
     token variable {
-        <sigil> <identifier>
+        | <array-sigil> <identifier> '[' <number> ']'
+        | <sigil> <identifier>
     }
 
     token sigil {
@@ -44,12 +45,7 @@ grammar G {
     }
 
     rule assignment {
-        <lvalue> '=' <expression>
-    }
-
-    rule lvalue {
-        | (<scalar-sigil>) <identifier>
-        | (<array-sigil>) <identifier> '[' <number> ']'
+        <variable> '=' <expression>
     }
 
     rule expression {
@@ -79,73 +75,88 @@ grammar G {
 class A {
     has %!var;
 
-    multi method variable-declaration($/ where $/<variable><sigil> eq '$') {
-        %!var{'$'}{$<variable><identifier>} = 'undefined';
+    method TOP($/) {
+        say %!var;
     }
 
-    multi method variable-declaration($/ where $/<variable><sigil> eq '@') {
-        %!var{'@'}{$<variable><identifier>} = [];
+    method mangled_name($/) {
+        my $name;
+        say "??"~$/;
+        my $identifier = $<identifier> // $<variable><identifier> // $<term><variable><identifier>;
+        say "<$identifier>";
+        if $<array-sigil> || $<variable><array-sigil> {
+            my $number = $<variable><number> ?? $<variable><number> !! 0;
+            $name = '@' ~ $identifier ~ '.' ~ $number;
+        }
+        else {
+            $name = '$' ~ $identifier;
+        } 
+
+        say "[$name]";
+        return $name;
+    }
+
+    method variable-declaration($/) {
+        %!var{self.mangled_name($/)} = 'undefined';
     }
 
     method variable($/) {
-        $/.make(%!var{$<sigil>}{$<identifier>})
+        $/.make(self.mangled_name($/));
     }
 
-    multi method lvalue($/ where $/[0] eq '$') {
-        $/.make(%!var<'$'><identifier>);
-    }
-
-    multi method lvalue($/ where $/[0] eq '@') {
-        $/.make(%!var<'$'><identifier>);
-    }
-
-    multi method assignment($/ where ~$/<lvalue>[0] eq '$') {
-        %!var{'$'}{$<lvalue><identifier>} = $<expression>.made;
-    }
-
-    multi method assignment($/ where ~$/<lvalue>[0] eq '@') {        
-        %!var{'@'}{$<lvalue><identifier>}[+$/<number>] = $<expression>.made;
+    method assignment($/) {        
+        %!var{self.mangled_name($/)} = $<expression>.made;
     }
 
     method value($/) {
-        $/.make(+$<number>)
+        $/.make(+$<number>);
     }
 
-    method say-function($/) {
-        say %!var{$<variable><sigil>}{$<variable><identifier>};
+    method say-function($/) {        
+        say %!var{self.mangled_name($/)};
     }
 
     multi method term($/ where $/<value>) {
-        $/.make($<value>.ast)
+        say "-->" ~ self.mangled_name($/);
+        $/.make($<value>.ast);
     }
 
     multi method term($/ where $/<variable>) {
-        $/.make($<variable>.ast)
+        $/.make($<variable>.ast);
     }
 
     multi method expression($/ where $/<term>) {
-        $/.make($<term>.ast + $<expression>.ast)
+        say "EXPR TERM";
+        say $/;
+        $/.make($<term>.ast + $<expression>.ast);
     }
 
     multi method expression($/ where $/<value>) {
-        $/.make(~$<value>)
+        $/.make(~$<value>);
     }
 
     multi method expression($/ where $/<variable>) {
-        $/.make(%!var{$<variable><sigil>}{$<variable><identifier>})
+        $/.make(%!var{self.mangled_name($/)});
     }
 }
 
 my $prog = q:to/END/;
 my $x;
-$x = 3;
-say $x;
-
-my @a;
-@a[0] = 4;
-say @a[0];
+$x = 32;
+my $y;
+$y = $x + 1;
 
 END
 
+
 my $result = G.parse($prog, :actions(A.new));
-say $result;
+#say $result;
+
+
+# my $x;
+# $x = 3;
+# say $x;
+
+# my @a;
+# @a[0] = 4;
+# say @a[0];

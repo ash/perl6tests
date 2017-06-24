@@ -112,12 +112,14 @@ class A {
 
 my $prog = q:to/END/;
 my $x;
-my $y;
-my $z;
-
 $x = 1;
-$y = 2;
+say $x;
 
+my $y;
+$y = $x;
+say $y;
+
+my $z;
 $z = $x + $y;
 say $z;
 

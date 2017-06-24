@@ -1,18 +1,15 @@
 my $x;
-$x = 100;
-say $x;
+$x = 5;
+say $x; # 5 
 
-my @a;
-@a[0] = 200;
-@a[1] = 300;
+my $y;
+$y = $x;
+say $y; # 5
 
-@a[2] = $x;
-@a[3] = @a[1];
+my $z;
+$z = $x + $y;
+say $z; # 10
 
-say @a; # [200 300 100 300]
-
-my $s = 10 + 20;
-say $s;
-
-$s = $x + @a[1];
-say $s;
+my $sum;
+$sum = 10 + 11 + $x + $y + $z;
+say $sum; # 27

@@ -1,3 +1,9 @@
+# $z = $x + $y
+
+
+
+my %var;
+
 grammar G {
     rule TOP {
         ^ 
@@ -27,16 +33,7 @@ grammar G {
     }
 
     token sigil {
-        | <scalar-sigil>
-        | <array-sigil>
-    }
-
-    token scalar-sigil {
-        '$'
-    }
-
-    token array-sigil {
-        '@'
+        '$' | '@'
     }
     
     token identifier {
@@ -44,12 +41,7 @@ grammar G {
     }
 
     rule assignment {
-        <lvalue> '=' <expression>
-    }
-
-    rule lvalue {
-        | (<scalar-sigil>) <identifier>
-        | (<array-sigil>) <identifier> '[' <number> ']'
+        <variable> '=' <expression>
     }
 
     rule expression {
@@ -77,34 +69,16 @@ grammar G {
 }
 
 class A {
-    has %!var;
-
-    multi method variable-declaration($/ where $/<variable><sigil> eq '$') {
-        %!var{'$'}{$<variable><identifier>} = 'undefined';
-    }
-
-    multi method variable-declaration($/ where $/<variable><sigil> eq '@') {
-        %!var{'@'}{$<variable><identifier>} = [];
+    method variable-declaration($/) {
+        %var{$<variable><sigil>}{$<variable><identifier>} = 'undefined';
     }
 
     method variable($/) {
-        $/.make(%!var{$<sigil>}{$<identifier>})
+        $/.make(%var{$<sigil>}{$<identifier>})
     }
 
-    multi method lvalue($/ where $/[0] eq '$') {
-        $/.make(%!var<'$'><identifier>);
-    }
-
-    multi method lvalue($/ where $/[0] eq '@') {
-        $/.make(%!var<'$'><identifier>);
-    }
-
-    multi method assignment($/ where ~$/<lvalue>[0] eq '$') {
-        %!var{'$'}{$<lvalue><identifier>} = $<expression>.made;
-    }
-
-    multi method assignment($/ where ~$/<lvalue>[0] eq '@') {        
-        %!var{'@'}{$<lvalue><identifier>}[+$/<number>] = $<expression>.made;
+    method assignment($/) {
+        %var{$<variable><sigil>}{$<variable><identifier>} = $<expression>.made;
     }
 
     method value($/) {
@@ -112,7 +86,7 @@ class A {
     }
 
     method say-function($/) {
-        say %!var{$<variable><sigil>}{$<variable><identifier>};
+        say %var{$<variable><sigil>}{$<variable><identifier>};
     }
 
     multi method term($/ where $/<value>) {
@@ -132,7 +106,7 @@ class A {
     }
 
     multi method expression($/ where $/<variable>) {
-        $/.make(%!var{$<variable><sigil>}{$<variable><identifier>})
+        $/.make(%var{$<variable><sigil>}{$<variable><identifier>})
     }
 }
 
@@ -147,5 +121,8 @@ say @a[0];
 
 END
 
-my $result = G.parse($prog, :actions(A.new));
-say $result;
+
+my $result = G.parse($prog, :actions(A));
+#say $result;
+
+say %var;
